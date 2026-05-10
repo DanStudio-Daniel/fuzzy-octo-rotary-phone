@@ -7,8 +7,8 @@ const app = express();
 app.use(express.json());
 
 // -------------------------- HARDCODED TOKENS --------------------------
-const PAGE_ACCESS_TOKEN = "YOUR_PAGE_ACCESS_TOKEN_HERE";
-const VERIFY_TOKEN = "YOUR_VERIFY_TOKEN_HERE";
+const PAGE_ACCESS_TOKEN = "EAAW7bgNPIuABRf50xRlpZCe2qjvQgxzYeG4ajvT4ZCcxzR8dG1YqY5xZARGWFljA0MQBgegcZConpeYDKdhfCeskwObkHXq7gJxcmxJwUhcQ2ooZBwBZCD9aZBruukU4iMGjZBZCwqF2OsaZCCo3BY3WVfXZBd0Kyz9VVGdhhTQhCAyIY6EFbYZBfkBZBnqgG6VLLObBe7CVekgZDZD";
+const VERIFY_TOKEN = "key";
 const PORT = 3000;
 
 // -------------------------- CONSTANTS --------------------------
