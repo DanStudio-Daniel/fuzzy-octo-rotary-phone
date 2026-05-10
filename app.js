@@ -9,7 +9,7 @@ const app = express().use(bodyParser.json());
 // --- CONFIGURATION ---
 const PAGE_ACCESS_TOKEN = 'EAAW7bgNPIuABRef4gSwZAyYwtTbDPdRn5uLpCE9RxVoPc5fMfJaoqncUZCdWRBf9ItbcB0ASxKuLTy82dEjzKZC3PAneB9l8jbdDTl3x1tmOf74gQMKW7nBY17S7pqF10Kv6h1J7xnSGhM5I2RCKk1J2xaPVG27XO91gwso09bhxIyN6qovxgAyM7vrwvMF5I2twwZDZD';
 const VERIFY_TOKEN = 'key';
-const FONT_STYLE = "sans-serif";
+const FONT_MAIN = "sans-serif";
 
 const sessions = new Map();
 
@@ -41,13 +41,14 @@ async function handleMessage(psid, msg) {
     const text = msg.text ? msg.text.trim() : "";
     const session = sessions.get(psid);
 
+    // Initial Trigger
     if (text.toLowerCase() === 'create') {
         sessions.set(psid, { step: 'PHOTO' });
-        return callSendAPI(psid, "📸 **iFake Phone Engine Ready**\n\n[1/3] Please send the **Profile Picture**.");
+        return callSendAPI(psid, "📸 **iFake Messenger Engine**\n\n[1/3] Please send the **Profile Picture** for the partner.");
     }
 
     if (!session) {
-        return callSendAPI(psid, "👋 Welcome! Please type **create** to generate a phone conversation screenshot.");
+        return callSendAPI(psid, "👋 Hello! To generate a professional Messenger conversation screenshot, please type **create** to start.");
     }
 
     switch(session.step) {
@@ -55,43 +56,43 @@ async function handleMessage(psid, msg) {
             if (msg.attachments && msg.attachments[0].type === 'image') {
                 session.pfpUrl = msg.attachments[0].payload.url;
                 session.step = 'NAME';
-                callSendAPI(psid, "👤 [2/3] What is the **Partner's Name**?");
+                callSendAPI(psid, "👤 [2/3] Got it! What is the **Partner's Name**?");
             } else {
-                callSendAPI(psid, "❌ Please send an image to continue.");
+                callSendAPI(psid, "❌ Please send an image for the avatar.");
             }
             break;
 
         case 'NAME':
             session.partnerName = text;
             session.step = 'MESSAGES';
-            callSendAPI(psid, "💬 [3/3] Enter the messages.\n\n**Format:**\nme: Hello\npartner: Hi!\\nHow are you?\n\n*Type 'create' to restart.*");
+            callSendAPI(psid, "💬 [3/3] Last step! Enter your messages.\n\n**Format:**\nme: Hello\npartner: Hi there!\n\n💡 **Pro Tip:** Use `\\n` inside a message if you want to start a **new line** within the same bubble!\n\n*Example:* `me: Hey!\\nHow are you?` ");
             break;
 
         case 'MESSAGES':
-            if (!text.includes(':')) return callSendAPI(psid, "❌ Format error. Use `me: text` or `partner: text`.");
+            if (!text.includes(':')) return callSendAPI(psid, "❌ Format error. Please use `me: message` or `partner: message`.");
             
-            callSendAPI(psid, "⏳ Rendering professional phone screenshot...");
+            callSendAPI(psid, "⏳ Rendering your high-end conversation... Please wait.");
             try {
                 const chatData = parseMessages(text);
                 const buffer = await renderChat(session.partnerName, session.pfpUrl, chatData);
                 await sendImage(psid, buffer);
                 sessions.delete(psid);
-                setTimeout(() => callSendAPI(psid, "✅ Done! Type **create** for a new one."), 1500);
+                setTimeout(() => callSendAPI(psid, "✅ Done! Type **create** to make another one."), 2000);
             } catch (e) {
                 console.error(e);
-                callSendAPI(psid, "❌ Render failed. Please try again.");
+                callSendAPI(psid, "❌ Render failed. Type **create** to restart.");
                 sessions.delete(psid);
             }
             break;
     }
 }
 
-// 3. RENDER ENGINE (Phone & UI)
+// 3. ENHANCED RENDER ENGINE
 async function renderChat(name, pfpUrl, chatData) {
     const width = 750;
-    const height = 1334; 
-    const bubbleMaxW = 480;
-    const padding = 30;
+    const height = 1334;
+    const bubbleMaxW = 500;
+    const padding = 25;
     const fontSize = 28;
     const lineHeight = 38;
 
@@ -99,91 +100,125 @@ async function renderChat(name, pfpUrl, chatData) {
     const canvas = createCanvas(width, height);
     const ctx = canvas.getContext('2d');
 
-    // BG
+    // Background
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, width, height);
 
     // --- STATUS BAR ---
     const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
     ctx.fillStyle = '#000';
-    ctx.font = `bold 24px ${FONT_STYLE}`;
-    ctx.fillText(timeStr, 50, 45);
-    // Battery
-    ctx.strokeRect(660, 25, 45, 22);
-    ctx.fillRect(705, 31, 4, 10);
-    ctx.fillStyle = '#28a745';
-    ctx.fillRect(663, 28, 32, 16); // 80% charge
-    // Signal
+    ctx.font = `bold 26px ${FONT_MAIN}`;
+    ctx.fillText(timeStr, 60, 50);
+
+    // Notch (Dynamic Island)
+    ctx.fillStyle = '#000000';
+    drawRoundedRect(ctx, width/2 - 100, 20, 200, 40, 20);
+    ctx.fill();
+
+    // Signal & Battery
     ctx.fillStyle = '#000';
-    for(let i=0; i<4; i++) ctx.fillRect(600 + (i*12), 45 - (i*5), 8, 5 + (i*5));
+    for(let i=0; i<4; i++) ctx.fillRect(580 + (i*10), 48 - (i*5), 6, 5 + (i*5));
+    ctx.strokeRect(650, 30, 45, 22);
+    ctx.fillRect(653, 33, 35, 16); // 90% Battery
+    ctx.fillRect(695, 36, 4, 10);
 
     // --- HEADER ---
-    ctx.font = `bold ${fontSize + 6}px ${FONT_STYLE}`;
-    ctx.fillText(name, 145, 115);
+    ctx.fillStyle = '#000';
+    ctx.font = `bold 32px ${FONT_MAIN}`;
+    ctx.fillText(name, 150, 125);
     ctx.fillStyle = '#8e8e8e';
-    ctx.font = `${fontSize - 4}px ${FONT_STYLE}`;
-    ctx.fillText("Active Now", 145, 150);
-    // Back Icon
+    ctx.font = `22px ${FONT_MAIN}`;
+    ctx.fillText("Active Now", 150, 155);
+
+    // Call Icons
+    ctx.fillStyle = '#0084ff';
+    ctx.beginPath(); ctx.arc(600, 130, 22, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(680, 130, 22, 0, Math.PI*2); ctx.fill();
+
+    // Back Arrow
     ctx.strokeStyle = '#0084ff';
     ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.moveTo(45, 105); ctx.lineTo(30, 120); ctx.lineTo(45, 135); ctx.stroke();
-    // Avatar
+    ctx.beginPath(); ctx.moveTo(45, 115); ctx.lineTo(30, 130); ctx.lineTo(45, 145); ctx.stroke();
+    
+    // Header Avatar
     ctx.save();
-    ctx.beginPath(); ctx.arc(95, 120, 35, 0, Math.PI * 2); ctx.clip();
-    ctx.drawImage(avatar, 60, 85, 70, 70);
+    ctx.beginPath(); ctx.arc(100, 130, 38, 0, Math.PI * 2); ctx.clip();
+    ctx.drawImage(avatar, 62, 92, 76, 76);
     ctx.restore();
 
     // --- MESSAGES ---
-    let currentY = 210;
-    const ctxMeasurer = canvas.getContext('2d');
-    ctxMeasurer.font = `${fontSize}px ${FONT_STYLE}`;
-
+    let currentY = 220;
     chatData.forEach((msg, i) => {
         const isMe = msg.sender === 'me';
-        const lines = wrapText(ctxMeasurer, msg.text, bubbleMaxW);
-        const bHeight = (lines.length * lineHeight) + 30;
+        const lines = wrapText(ctx, msg.text, bubbleMaxW);
+        const bHeight = (lines.length * lineHeight) + 32;
         
-        if (currentY + bHeight > height - 120) return; // Screen limit
+        if (currentY + bHeight > height - 150) return;
 
-        const longestLine = Math.max(...lines.map(l => ctxMeasurer.measureText(l).width));
-        const bWidth = longestLine + 45;
-        const x = isMe ? (width - bWidth - padding) : (padding + 80);
+        const longestLine = Math.max(...lines.map(l => ctx.measureText(l).width));
+        const bWidth = Math.min(longestLine + 45, bubbleMaxW + 45);
+        const x = isMe ? (width - bWidth - padding) : (padding + 85);
+
+        // Shadow
+        ctx.shadowColor = "rgba(0,0,0,0.05)";
+        ctx.shadowBlur = 5;
+        ctx.shadowOffsetY = 2;
 
         ctx.fillStyle = isMe ? '#0084ff' : '#f0f0f0';
-        drawRoundedRect(ctx, x, currentY, bWidth, bHeight, 28);
+        drawRoundedRect(ctx, x, currentY, bWidth, bHeight, 30);
         ctx.fill();
+        ctx.shadowColor = "transparent";
 
-        ctx.fillStyle = isMe ? '#fff' : '#000';
-        ctx.font = `${fontSize}px ${FONT_STYLE}`;
+        // Text
+        ctx.fillStyle = isMe ? '#ffffff' : '#000000';
+        ctx.font = `28px ${FONT_MAIN}`;
         lines.forEach((line, idx) => {
-            ctx.fillText(line, x + 22, currentY + 42 + (idx * lineHeight));
+            ctx.fillText(line, x + 22, currentY + 44 + (idx * lineHeight));
         });
 
+        // Partner mini-avatar or Delivery check
         if (!isMe) {
             ctx.save();
-            ctx.beginPath(); ctx.arc(45, currentY + bHeight - 15, 15, 0, Math.PI * 2); ctx.clip();
-            ctx.drawImage(avatar, 30, currentY + bHeight - 30, 30, 30);
+            ctx.beginPath(); ctx.arc(45, currentY + bHeight - 15, 16, 0, Math.PI * 2); ctx.clip();
+            ctx.drawImage(avatar, 29, currentY + bHeight - 31, 32, 32);
             ctx.restore();
+        } else if (i === chatData.length - 1) {
+            ctx.strokeStyle = '#8e8e8e';
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(width - 20, currentY + bHeight - 10, 8, 0, Math.PI*2); ctx.stroke();
         }
 
         const isSame = chatData[i+1]?.sender === msg.sender;
-        currentY += bHeight + (isSame ? 10 : 30);
+        currentY += bHeight + (isSame ? 8 : 32);
     });
 
-    // --- BOTTOM INPUT ---
+    // --- BOTTOM BAR ---
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, height - 100, width, 100);
+    ctx.fillRect(0, height - 120, width, 120);
+    ctx.fillStyle = '#0084ff';
+    ctx.font = `bold 40px ${FONT_MAIN}`;
+    ctx.fillText("+", 30, height - 60);
+    ctx.beginPath(); ctx.arc(100, height - 72, 18, 0, Math.PI*2); ctx.fill();
+
+    // Input Field
     ctx.fillStyle = '#f0f0f0';
-    drawRoundedRect(ctx, 130, height - 85, 480, 65, 32);
+    drawRoundedRect(ctx, 150, height - 105, 460, 68, 34);
     ctx.fill();
     ctx.fillStyle = '#8e8e8e';
-    ctx.font = `26px ${FONT_STYLE}`;
-    ctx.fillText("Aa", 160, height - 42);
+    ctx.font = `26px ${FONT_MAIN}`;
+    ctx.fillText("Aa", 185, height - 62);
+    ctx.fillText("☺", 560, height - 62);
+
+    // Send Button (Arrow)
+    ctx.fillStyle = '#0084ff';
+    ctx.beginPath();
+    ctx.moveTo(660, height - 95); ctx.lineTo(710, height - 70); ctx.lineTo(660, height - 45);
+    ctx.closePath(); ctx.fill();
 
     return canvas.toBuffer();
 }
 
-// 4. HELPERS
+// 4. HELPERS & API
 function parseMessages(input) {
     return input.split('\n').filter(l => l.includes(':')).map(line => {
         const [s, ...r] = line.split(':');
@@ -224,8 +259,8 @@ async function sendImage(psid, buffer) {
     const form = new FormData();
     form.append('recipient', JSON.stringify({ id: psid }));
     form.append('message', JSON.stringify({ attachment: { type: 'image', payload: { is_reusable: true } } }));
-    form.append('filedata', buffer, { filename: 'ifake.png' });
+    form.append('filedata', buffer, { filename: 'ifake_pro.png' });
     await axios.post(`https://graph.facebook.com/v19.0/me/messages?access_token=${PAGE_ACCESS_TOKEN}`, form, { headers: form.getHeaders() });
 }
 
-app.listen(process.env.PORT || 3000, () => console.log('Bot Active on Port 3000'));
+app.listen(process.env.PORT || 3000, () => console.log('Pagebot Engine Online'));
